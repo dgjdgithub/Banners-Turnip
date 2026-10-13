@@ -12,6 +12,22 @@ Safe to run multiple times.
 import re
 import sys
 
+TU_UTIL = "src/freedreno/vulkan/tu_util.cc"
+with open(TU_UTIL, "r") as f:
+    tu_src = f.read()
+old = 'parse_debug_string(os_get_option("TU_DEBUG"), tu_debug_options)'
+new = ('parse_debug_string(os_get_option("TU_DEBUG") ? os_get_option("TU_DEBUG") : "noubwc", '
+        'tu_debug_options)')
+if new in tu_src:
+    print("  noubwc default already present, skipping")
+elif old in tu_src:
+    with open(TU_UTIL, "w") as f:
+        f.write(tu_src.replace(old, new, 1))
+    print("  Default TU_DEBUG=noubwc patched into " + TU_UTIL)
+else:
+    print("  FATAL: TU_DEBUG parse line not found in " + TU_UTIL, file=sys.stderr)
+    sys.exit(1)
+
 DEVICES_PY = "src/freedreno/common/freedreno_devices.py"
 
 with open(DEVICES_PY, "r") as f:
